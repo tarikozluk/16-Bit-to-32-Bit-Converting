@@ -23,23 +23,33 @@ StopWDT     mov.w   #WDTPW|WDTHOLD,&WDTCTL  ; Stop watchdog timer
 ;-------------------------------------------------------------------------------
 ; Main loop here
 ;-------------------------------------------------------------------------------
-        clr     r5
-m1      clr     2400h(r5)
-        incd    r5
-        cmp     #020h,r5
-        jnz     m1
-        mov     #0f010h, &2402h      ;significant part
-        mov     #08010h, &2404h      ;unsignificant part
-
-        ;We define 32 Bit number now
-        mov     #0ffffh, &2412h      ;significant part
-        mov     #08020h, &2414h      ;unsignificant part
-
-        add     &2404h, &2414h       ;we added significant parts
-        addc    &2402h, &2412h       ;we added significant parts with rests
-        adc     &2410h               ;we carried the rest parts to 2410h
-
-        nop
+		  clr    	            r5
+m1   	 	  clr    	            2400h(r5)
+      		  incd   	            r5
+      		  cmp    	            #020h,r5
+      		  jnz   	            m1
+      		  MOV		#0x02414,R15
+      		  MOV		#0,0(R15)
+      		  MOV		#0x2404,R14
+      		  MOV		#0,0(R14)
+      		  MOV		#1,R13
+      		  MOV		#0x2400,R12
+      		  MOV		#0,0(R12)
+looprecht	              ADD		R13,0(R15)
+	              INC		R13
+		  JC		Restsumme
+		  ADC		&2410h
+		  JMP		looprecht
+Restsumme	              INC		R12
+		  JZ		looplink
+looplink	              ADD		R12,0(R14)
+		  INC		R12
+		  CMP		#5001,R12
+		  JEQ		Bitsumme
+		  JMP		looplink
+Bitsumme	              ADD		&2414h,&2404h
+		  ADDC		&2414h,&2406h
+                                            
 
 ;-------------------------------------------------------------------------------
 ; Stack Pointer definition
